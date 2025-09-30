@@ -113,6 +113,8 @@ const AI = () => {
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [chatHistory, setChatHistory] = useState([]);
+  const [currentChatId, setCurrentChatId] = useState(null);
 
   const quickActions = [
     { 
@@ -149,6 +151,75 @@ const AI = () => {
 
   // Get current chat summary for sidebar
   const currentChatSummary = messages.find(msg => msg.type === 'user')?.content.slice(0, 50) + '...' || '';
+
+  const handleNewChat = () => {
+    // Save current chat to history if it has user messages
+    if (messages.some(msg => msg.type === 'user')) {
+      const chatSummary = messages.find(msg => msg.type === 'user')?.content.slice(0, 50) + '...' || 'New Chat';
+      const newChatHistory = {
+        id: Date.now(),
+        title: chatSummary,
+        messages: [...messages],
+        timestamp: new Date().toLocaleTimeString()
+      };
+      setChatHistory(prev => [newChatHistory, ...prev]);
+    }
+    
+    // Reset to initial state
+    setMessages([
+      {
+        id: 1,
+        type: 'bot',
+        content: 'Hello! I\'m Shark AI, your marine data assistant.',
+        timestamp: new Date().toLocaleTimeString()
+      }
+    ]);
+    setInputMessage('');
+    setError(null);
+    setCurrentChatId(null);
+  };
+
+  const handleSelectChat = (chatId: number) => {
+    // Find the chat in history and load it
+    const selectedChat = chatHistory.find(chat => chat.id === chatId);
+    if (selectedChat) {
+      setMessages(selectedChat.messages);
+      setCurrentChatId(chatId);
+      setInputMessage('');
+      setError(null);
+    } else {
+      // For demo purposes, load some sample chat data
+      const sampleChats = {
+        1: [
+          { id: 1, type: 'bot', content: 'Hello! I\'m Shark AI, your marine data assistant.', timestamp: new Date().toLocaleTimeString() },
+          { id: 2, type: 'user', content: 'Tell me about marine species analysis', timestamp: new Date().toLocaleTimeString() },
+          { id: 3, type: 'bot', content: 'Marine species analysis involves studying biodiversity, population dynamics, and ecological relationships in marine ecosystems. We use various methods including eDNA sampling, visual surveys, and acoustic monitoring.', timestamp: new Date().toLocaleTimeString() }
+        ],
+        2: [
+          { id: 1, type: 'bot', content: 'Hello! I\'m Shark AI, your marine data assistant.', timestamp: new Date().toLocaleTimeString() },
+          { id: 2, type: 'user', content: 'Show me ocean temperature patterns', timestamp: new Date().toLocaleTimeString() },
+          { id: 3, type: 'bot', content: 'Ocean temperature patterns vary by depth, season, and geographic location. Surface temperatures are generally warmer and more variable, while deep ocean temperatures remain relatively stable around 2-4°C.', timestamp: new Date().toLocaleTimeString() }
+        ],
+        3: [
+          { id: 1, type: 'bot', content: 'Hello! I\'m Shark AI, your marine data assistant.', timestamp: new Date().toLocaleTimeString() },
+          { id: 2, type: 'user', content: 'Explain eDNA analysis results', timestamp: new Date().toLocaleTimeString() },
+          { id: 3, type: 'bot', content: 'eDNA (environmental DNA) analysis detects genetic material shed by organisms into their environment. This technique allows us to identify species presence without direct observation, making it valuable for biodiversity monitoring.', timestamp: new Date().toLocaleTimeString() }
+        ],
+        4: [
+          { id: 1, type: 'bot', content: 'Hello! I\'m Shark AI, your marine data assistant.', timestamp: new Date().toLocaleTimeString() },
+          { id: 2, type: 'user', content: 'Help with fisheries stock assessment', timestamp: new Date().toLocaleTimeString() },
+          { id: 3, type: 'bot', content: 'Fisheries stock assessment evaluates fish population health and sustainability. Key metrics include biomass, recruitment rates, fishing mortality, and maximum sustainable yield (MSY).', timestamp: new Date().toLocaleTimeString() }
+        ]
+      };
+      
+      if (sampleChats[chatId]) {
+        setMessages(sampleChats[chatId]);
+        setCurrentChatId(chatId);
+        setInputMessage('');
+        setError(null);
+      }
+    }
+  };
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim()) return;
@@ -223,7 +294,11 @@ const AI = () => {
     // CHANGE 1: Use h-screen instead of min-h-screen to fix the height and prevent scrolling
     <div className="flex h-screen bg-gray-50 overflow-hidden">
       {/* Sidebar */}
-      <ChatHistorySidebar currentChatSummary={currentChatSummary} />
+      <ChatHistorySidebar 
+        currentChatSummary={currentChatSummary} 
+        onNewChat={handleNewChat}
+        onSelectChat={handleSelectChat}
+      />
       
       {/* Main Content */}
       <div className="flex-1 flex flex-col bg-white rounded-l-2xl shadow-xl overflow-hidden">
