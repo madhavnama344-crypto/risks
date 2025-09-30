@@ -44,7 +44,7 @@ cp .env.example .env
    - Generate an API key
    - Add it to your `.env` file:
    ```
-   GEMINI_API_KEY=your_actual_api_key_here
+   NVIDIA_API_KEY=your_actual_api_key_here
    ```
 
 5. Start the development server:
@@ -59,16 +59,16 @@ node server.js
 
 ## AI Assistant Configuration
 
-The AI assistant uses Google's Gemini 1.5 Flash model for marine data analysis. To enable the AI features:
+The AI assistant uses NVIDIA's Llama-3.1-Nemotron-70B-Instruct model for marine data analysis. To enable the AI features:
 
-1. **Get Gemini API Key**:
-   - Visit [Google AI Studio](https://aistudio.google.com/)
+1. **Get NVIDIA API Key**:
+   - Visit [https://build.nvidia.com/](https://build.nvidia.com/)
    - Create an account or sign in
    - Generate an API key from the dashboard
 
 2. **Configure Environment**:
    - Copy `.env.example` to `.env`
-   - Add your API key: `GEMINI_API_KEY=your_key_here`
+   - Add your API key: `NVIDIA_API_KEY=your_key_here`
 
 3. **AI Capabilities**:
    - Marine species identification
