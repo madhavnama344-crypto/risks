@@ -1,231 +1,158 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { ArrowDown, Sun, Fish, Users, Dna, Bot } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Globe, Fish, Dna, Search, Map, Database, BookOpen, Star, Briefcase } from 'lucide-react';
 
-// Video Component for the Hero Section
-const HeroVideoBackground = () => (
-  <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0">
-    <video
-      className="min-w-full min-h-full absolute object-cover"
-      src="https://www.pexels.com/download/video/18304134/"
-      autoPlay
-      muted
-      loop
-      playsInline 
-    />
-    <div className="absolute inset-0 bg-black opacity-50"></div>
-  </div>
-);
-
-// Scientist Card Component (NEW AESTHETIC DESIGN)
-const ScientistCard = ({ imageUrl, name, institution, field, experience, impactScore, bio, color }) => (
-  <div className="group relative bg-white rounded-xl shadow-md border border-slate-200/80
-              transition-all duration-300 hover:shadow-xl hover:-translate-y-1 flex overflow-hidden">
-    {/* Left Side: Image */}
-    <div className="relative w-1/3 overflow-hidden">
-      <img src={imageUrl} alt={name} className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
-    </div>
-
-    {/* Right Side: Information */}
-    <div className="w-2/3 p-6 flex flex-col">
-      <div>
-        <div className={`inline-block bg-${color}-100 text-${color}-800 text-xs font-semibold px-3 py-1 rounded-full mb-2`}>
-          {field}
-        </div>
-        <h3 className="text-2xl font-bold text-slate-800 font-google-sans-code">{name}</h3>
-        <p className="text-slate-500 text-sm mt-1">{institution}</p>
-        
-        <div className="flex items-center space-x-5 mt-4 text-slate-600">
-          <div className="flex items-center space-x-1.5 text-sm">
-            <Briefcase className="w-4 h-4" />
-            <span>{experience}+ Years</span>
-          </div>
-          <div className="flex items-center space-x-1.5 text-sm">
-            <Star className="w-4 h-4 text-yellow-500 fill-yellow-400" />
-            <span>{impactScore} Impact</span>
-          </div>
-        </div>
-        
-        <p className="text-sm text-slate-600 mt-4 border-t border-slate-200 pt-4 font-zakartra-sans">
-          {bio}
-        </p>
-      </div>
-
-      <div className="mt-auto pt-6 flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
-        <button className={`flex-1 bg-${color}-500 text-white px-5 py-2.5 rounded-lg
-                          font-semibold hover:bg-${color}-600 transition-all duration-300 shadow-sm`}>
-          View Research
-        </button>
-        <button className="flex-1 border border-slate-300 text-slate-700 px-5 py-2.5 rounded-lg
-                          font-semibold hover:bg-slate-100 transition-all duration-300">
-          Contact
-        </button>
-      </div>
-    </div>
-  </div>
-);
-
-// Feature Card Component
-const FeatureCard = ({ icon, title, description }) => (
-  <div className="bg-white/70 backdrop-blur-sm border border-slate-200/80 rounded-xl p-8 text-left transition-all duration-300 hover:shadow-xl hover:border-slate-300 hover:-translate-y-1">
-    <div className="mb-4">{icon}</div>
-    <h3 className="text-lg font-semibold text-slate-800 mb-2 font-google-sans-code">{title}</h3>
-    <p className="text-sm text-slate-600 font-zakartra-sans">{description}</p>
-  </div>
-);
-
-// Full-width information section component
-const InfoSection = ({ icon, title, text, imageUrl, imageAlt, reverse = false }) => (
-  <section className="py-24 px-6 bg-white">
-    <div className={`max-w-6xl mx-auto grid md:grid-cols-2 gap-16 items-center ${reverse ? 'md:grid-flow-col-dense' : ''}`}>
-      <div className={`text-left ${reverse ? 'md:col-start-2' : ''}`}>
-        <div className="mb-6">{icon}</div>
-        <h3 className="text-3xl font-bold text-slate-800 mb-4 font-google-sans-code">{title}</h3>
-        <p className="text-lg text-slate-600 leading-relaxed font-zakartra-sans">
-          {text}
-        </p>
-      </div>
-      <div className={`flex items-center justify-center ${reverse ? 'md:col-start-1' : ''}`}>
-        <img src={imageUrl} alt={imageAlt} className="w-full h-96 object-cover rounded-2xl shadow-lg" />
+// A single section component for the storytelling layout
+const StorySection = ({ id, title, children, className }) => (
+  <section id={id} className={`min-h-screen flex items-center justify-center p-8 ${className}`}>
+    <div className="w-full max-w-xl mx-auto text-center text-white/90">
+      <h2 className="text-4xl md:text-5xl font-bold mb-6 font-google-sans-code opacity-0 animate-fade-in-up">{title}</h2>
+      <div className="text-lg md:text-xl space-y-4 opacity-0 animate-fade-in-up delay-200">
+        {children}
       </div>
     </div>
   </section>
 );
 
+// Scientist card component for the "Team" section
+const ScientistCard = ({ imageUrl, name, field }) => (
+  <div className="bg-white/10 backdrop-blur-lg rounded-xl p-4 flex items-center space-x-4 opacity-0 animate-fade-in-up">
+    <img src={imageUrl} alt={name} className="w-16 h-16 rounded-full object-cover border-2 border-cyan-300" />
+    <div>
+      <h4 className="font-bold text-lg text-white">{name}</h4>
+      <p className="text-cyan-200 text-sm">{field}</p>
+    </div>
+  </div>
+);
 
 const Home = () => {
+  const [scrollY, setScrollY] = useState(0);
+  const [fishPosition, setFishPosition] = useState(0);
+  const [activeSection, setActiveSection] = useState('hero');
+  const pageRef = useRef(null);
+
+  // --- Scroll and Animation Logic ---
+  useEffect(() => {
+    const handleScroll = () => {
+      const pageHeight = pageRef.current ? pageRef.current.scrollHeight - window.innerHeight : 4000;
+      const currentScroll = window.scrollY;
+      setScrollY(currentScroll);
+      
+      // Update fish position based on scroll percentage
+      const scrollPercent = Math.min(currentScroll / pageHeight, 1);
+      setFishPosition(scrollPercent * 100);
+
+      // Determine active section for background transitions
+      const sections = ['hero', 'who-we-are', 'our-mission', 'our-team', 'discover'];
+      const sectionTops = sections.map(id => document.getElementById(id)?.offsetTop ?? 0);
+      const currentSectionIndex = sectionTops.findIndex(top => currentScroll < top - window.innerHeight / 2);
+      setActiveSection(sections[currentSectionIndex === -1 ? sections.length - 1 : Math.max(0, currentSectionIndex - 1)]);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // --- Background Opacity Logic ---
+  const getBgOpacity = (sectionId) => {
+    return activeSection === sectionId ? 'opacity-100' : 'opacity-0';
+  };
+
   const scientists = [
     {
       imageUrl: "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=600",
       name: "Dr. Rajesh Kumar",
-      institution: "CSIR-NIO, Goa",
       field: "Physical Oceanography",
-      experience: 22,
-      impactScore: 4.9,
-      bio: "Pioneering research in Indian Ocean monsoon dynamics and climate modeling.",
-      color: "ocean",
     },
     {
       imageUrl: "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=600",
       name: "Dr. Priya Nair",
-      institution: "CMFRI, Kochi",
       field: "Marine Biology & Fisheries",
-      experience: 18,
-      impactScore: 4.8,
-      bio: "Expert in tropical fisheries management and marine biodiversity conservation.",
-      color: "aqua",
     },
   ];
 
   return (
-    <div className="bg-slate-50 text-slate-800">
-      {/* Hero Section */}
-      <section className="relative h-screen flex flex-col items-center justify-center text-center text-white p-6">
-        <HeroVideoBackground />
-        <div className="relative z-10 max-w-4xl mx-auto">
-          <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight font-google-sans-code animate-fade-in-up">
-            Shark
-          </h1>
-          <p className="text-xl md:text-2xl text-slate-200 mb-12 max-w-3xl mx-auto font-zakartra-sans animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
-            Unifying complex marine data for sustainable ocean management through advanced AI.
-          </p>
-          <Link to="/ai" className="border-2 border-white text-white px-10 py-3 rounded-full font-semibold text-lg hover:bg-white hover:text-slate-900 transition-all duration-300 inline-flex items-center space-x-3 animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
-            <span>Try AI Assistant</span>
-            <ArrowRight className="w-5 h-5" />
-          </Link>
-        </div>
-      </section>
+    <div ref={pageRef} className="relative bg-[#000428]">
+      {/* --- Animated Backgrounds --- */}
+      <div className="fixed inset-0 w-full h-full z-0">
+        {/* Base dark blue background is always visible */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#000428] to-[#004e92]" />
 
-      {/* --- Vision & Information Sections --- */}
-      <div className="bg-slate-50 py-28">
-        <div className="max-w-6xl mx-auto px-6">
-            <div className="text-center max-w-3xl mx-auto mb-20">
-              <h2 className="text-4xl font-bold text-slate-900 mb-4 font-google-sans-code">A Unified Vision for Marine Intelligence</h2>
-              <p className="text-lg text-slate-600 font-zakartra-sans">
-                We centralize critical marine data streams into one intelligent platform, empowering researchers and policymakers with actionable insights for conservation and sustainable resource management.
-              </p>
-            </div>
+        {/* Sunlight Zone */}
+        <div className={`absolute inset-0 transition-opacity duration-1000 ${getBgOpacity('hero')}`}>
+          <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-cyan-300/30 to-transparent" />
         </div>
         
-        <InfoSection 
-          icon={<Globe className="w-12 h-12 text-ocean-600" />}
-          title="Oceanographic Data"
-          text="Analyze currents, salinity, and climate patterns for a comprehensive marine overview. Our AI models identify trends and anomalies in physical and chemical ocean properties to predict environmental changes."
-          imageUrl="https://images.pexels.com/photos/3410956/pexels-photo-3410956.jpeg"
-          imageAlt="Vibrant coral reef"
-        />
-
-        <InfoSection 
-          icon={<Fish className="w-12 h-12 text-aqua-600" />}
-          title="Fisheries Data Analytics"
-          text="Monitor stock health, track catch trends, and model sustainable fishing practices. The platform integrates historical and real-time data to help ensure the longevity of marine populations and support coastal livelihoods."
-          imageUrl="https://images.pexels.com/photos/889929/pexels-photo-889929.jpeg"
-          imageAlt="School of fish swimming in the ocean"
-          reverse={true}
-        />
-
-        <InfoSection 
-          icon={<Dna className="w-12 h-12 text-deepBlue-600" />}
-          title="Biodiversity & eDNA Insights"
-          text="Leverage environmental DNA (eDNA), species taxonomy, and habitat mapping to protect marine ecosystems. Uncover the secrets of marine life and track biodiversity with cutting-edge genomic tools."
-          imageUrl="https://images.pexels.com/photos/18069422/pexels-photo-18069422.png"
-          imageAlt="Scientific equipment for DNA analysis"
-        />
-
+        {/* Twilight Zone */}
+        <div className={`absolute inset-0 bg-gradient-to-b from-transparent via-[#004e92]/50 to-[#000428] transition-opacity duration-1000 ${getBgOpacity('who-we-are')}`} />
+        
+        {/* Midnight Zone */}
+        <div className={`absolute inset-0 bg-black/30 transition-opacity duration-1000 ${getBgOpacity('our-mission')}`} />
+        <div className={`absolute inset-0 bg-black/60 transition-opacity duration-1000 ${getBgOpacity('our-team')}`} />
       </div>
 
-      {/* Scientists Section */}
-      <section className="py-28 px-6 bg-slate-100/70">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-slate-900 mb-4 font-google-sans-code">Pioneering Indian Marine Scientists</h2>
-            <p className="text-lg text-slate-600 max-w-3xl mx-auto font-zakartra-sans">
-              Our platform is guided by the expertise of leading researchers from India's premier institutions.
-            </p>
+      {/* --- Animated Fish Icon --- */}
+      <div className="fixed top-0 left-8 h-full w-px z-20 hidden md:block">
+        <div 
+          className="absolute left-1/2 -translate-x-1/2 transition-transform duration-200 ease-out" 
+          style={{ transform: `translateY(${fishPosition}vh) translateX(-50%)` }}
+        >
+          <Fish className="text-cyan-300" size={32} style={{ transform: 'rotate(90deg)' }}/>
+        </div>
+      </div>
+      
+      {/* --- Scrollable Content --- */}
+      <div className="relative z-10">
+        {/* Hero Section */}
+        <section id="hero" className="h-screen flex flex-col items-center justify-center text-center p-4">
+          <h1 className="text-6xl md:text-8xl font-bold text-white mb-4 font-google-sans-code animate-fade-in-up">
+            EXPLORE THE DEPTHS
+          </h1>
+          <p className="text-xl text-white/80 mb-8 animate-fade-in-up delay-200">
+            AI-Driven Marine Insights at Your Fingertips.
+          </p>
+          <div className="animate-bounce mt-16 animate-fade-in-up delay-300">
+            <ArrowDown className="text-white w-8 h-8" />
           </div>
-          <div className="grid md:grid-cols-1 lg:grid-cols-1 gap-10 max-w-4xl mx-auto">
-            {scientists.map((scientist, index) => (
-              <ScientistCard key={index} {...scientist} />
+        </section>
+
+        {/* Who We Are Section */}
+        <StorySection id="who-we-are" title="Who We Are">
+          <p>
+            Shark is a comprehensive marine data platform that unifies ocean, fisheries, otolith, 
+            and DNA data for sustainable marine management.
+          </p>
+          <p className="mt-4">
+            We integrate cutting-edge research to provide holistic insights into ocean ecosystems, climate patterns, and marine biodiversity.
+          </p>
+        </StorySection>
+        
+        {/* Our Mission Section */}
+        <StorySection id="our-mission" title="Our Mission">
+          <div className="flex flex-col md:flex-row gap-8 text-left">
+            <div className="flex-1 space-y-2">
+              <Sun size={28} className="text-yellow-300" />
+              <h3 className="font-bold text-2xl">Illuminate</h3>
+              <p>To bring clarity to complex marine data through advanced AI-powered analytics and visualization.</p>
+            </div>
+            <div className="flex-1 space-y-2">
+              <Dna size={28} className="text-teal-300" />
+              <h3 className="font-bold text-2xl">Conserve</h3>
+              <p>To empower researchers and policymakers with actionable insights for conservation and resource management.</p>
+            </div>
+          </div>
+        </StorySection>
+
+        {/* Our Team Section */}
+        <StorySection id="our-team" title="Pioneering Scientists">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+            {scientists.map((s, i) => (
+              <div key={s.name} className={`delay-${i*100 + 300}`}>
+                <ScientistCard {...s} />
+              </div>
             ))}
           </div>
-        </div>
-      </section>
+        </StorySection>
 
-      {/* Features Section */}
-      <section className="py-28 px-6 bg-white">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-slate-900 mb-4 font-google-sans-code">Platform Features</h2>
-            <p className="text-lg text-slate-600 max-w-3xl mx-auto font-zakartra-sans">
-              A suite of powerful tools designed for modern marine science.
-            </p>
-          </div>
-          <div className="grid md:grid-cols-2 gap-8">
-            <FeatureCard
-              icon={<Search className="w-10 h-10 text-ocean-600" />}
-              title="AI Search & Analysis"
-              description="Pose complex questions in natural language and receive AI-driven insights from integrated datasets."
-            />
-            <FeatureCard
-              icon={<Map className="w-10 h-10 text-aqua-600" />}
-              title="Interactive Geovisualization"
-              description="Map and visualize marine data in real-time, overlaying different datasets for spatial analysis."
-            />
-            <FeatureCard
-              icon={<Database className="w-10 h-10 text-deepBlue-600" />}
-              title="Unified Biodiversity Database"
-              description="Access a comprehensive and searchable database of species, eDNA records, and habitat information."
-            />
-            <FeatureCard
-              icon={<BookOpen className="w-10 h-10 text-seafoam-600" />}
-              title="Developer API Access"
-              description="Integrate our rich marine datasets into your own applications and models with a robust, documented API."
-            />
-          </div>
-        </div>
-      </section>
-    </div>
-  );
-};
-
-export default Home;
+        {/* Discover Section */}
+        <StorySection id="discover" title="Ready to Dive In?
